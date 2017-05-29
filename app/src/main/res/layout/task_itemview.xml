@@ -1,0 +1,11 @@
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/task_textView"
+    android:text="asdasd"
+    android:gravity="center"
+    android:layout_width="140dp"
+    android:minWidth="140dp"
+    android:layout_height="40dp"
+    android:minHeight="40dp"
+    android:orientation="vertical"/>
+

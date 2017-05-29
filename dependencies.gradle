@@ -8,13 +8,13 @@ ext {
     androidCompileSdkVersion = 25
 
     //support libraries
-    supportLibraryVersion = '25.1.1'
+    supportLibraryVersion = '25.3.1'
     constraintlayoutVersion = '1.0.2'
 
     //dependencyInjection
     daggerVersion = '2.0.1'
     annotationsVersion = '10.0-b28'
-    butterknifeVersion = '7.0.1'
+    butterknifeVersion = '8.6.0'
 
     //reactive programming libraries
     rxJavaVersion = '2.1.0'
@@ -23,9 +23,9 @@ ext {
     //test libraries
     junitVersion = '4.12'
     dexmaker_mockitoVersion = '1.2'
-    mockitoVersion = '2.0.44-beta'
-    runner_version = '0.4'
-    espresso_version = '2.2.1'
+    mockitoVersion = '1.9.5'
+    runner_version = '0.5'
+    espresso_version = '2.2.2'
 
     //REST libraries
     retrofitVersion = '2.0.0'
@@ -67,7 +67,8 @@ ext {
             dagger          :   "com.google.dagger:dagger-compiler:${daggerVersion}",
             daggerCompiler  :   "com.google.dagger:dagger:${daggerVersion}",
             annotations     :   "org.glassfish:javax.annotation:${annotationsVersion}",
-            butterknife     :   "com.jakewharton:butterknife:${butterknifeVersion}",
+            butterknife        : "com.jakewharton:butterknife:${butterknifeVersion}",
+            butterknifeCompiler: "com.jakewharton:butterknife-compiler:${butterknifeVersion}",
     ]
 
     fontDependencies = [

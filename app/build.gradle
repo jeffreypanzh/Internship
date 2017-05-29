@@ -64,6 +64,7 @@ android {
 
     /*productFlavors {
     }*/
+    configurations.all { resolutionStrategy { force 'org.objenesis:objenesis:2.1' } }
 
     buildTypes {
         def BOOLEAN = "boolean"
@@ -119,6 +120,22 @@ dependencies {
     compile supportDependencies.appCompatv7
     compile loggerDependencies.logger
     compile supportDependencies.constraintlayout
+    compile supportDependencies.recyclerView
+
+    compile diDependencies.butterknife
+    apt diDependencies.butterknifeCompiler
+
+    //android tests
+    androidTestCompile androidTestDependencies.espresso
+    androidTestCompile androidTestDependencies.junit
+    androidTestCompile androidTestDependencies.dexmaker_mockito
+    androidTestCompile androidTestDependencies.supportTestRunner
+    androidTestCompile androidTestDependencies.supportTestRules
+    androidTestCompile supportDependencies.supportAnnotations
+
+    //junit tests
+    compile testDependencies.mockito
+    compile testDependencies.junit
 
     //CRASHLITYCS
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
