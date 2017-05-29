@@ -1,0 +1,127 @@
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply plugin: 'com.neenbedankt.android-apt'
+apply from: '../versioning.gradle'
+
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            url 'https://maven.fabric.io/public'
+        }
+    }
+
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://maven.fabric.io/public'
+    }
+}
+
+def changeApkName = { variant ->
+    variant.outputs.each { output ->
+        def apk = output.outputFile;
+        def apkFileName = rootProject.ext.getAt("androidApplicationName");
+        if (variant.productFlavors.any()) {
+            apkFileName = variant.mergedFlavor.ext.apkName
+        }
+        if (variant.buildType.name == "release") {
+            apkFileName += "-v" + variant.mergedFlavor.versionName + "-release.apk";
+        } else {
+            apkFileName += "-v" + variant.mergedFlavor.versionName + ".apk";
+        }
+
+        if (!output.zipAlign) {
+            apkFileName = apkFileName.replace(".apk", "-unaligned.apk");
+        }
+        output.outputFile = new File(apk.parentFile, apkFileName);
+
+        println 'INFO: Set outputFile to ' + output.outputFile + " for [" + output.name + "]"
+    }
+}
+
+android {
+
+    compileSdkVersion 25
+    buildToolsVersion '25.0.3'
+
+    defaultConfig {
+        applicationId androidApplicationId
+        minSdkVersion 14
+        targetSdkVersion 25
+    }
+
+    /*signingConfigs {
+        release
+        debug
+    }*/
+
+    /*productFlavors {
+    }*/
+
+    buildTypes {
+        def BOOLEAN = "boolean"
+        def TRUE = "true"
+        def FALSE = "false"
+        def DEBUG_BUILD = "DEBUG_BUILD"
+        def CRASHLITYCS = "ENABLE_CRASHLITYCS"
+        release {
+            buildConfigField BOOLEAN, DEBUG_BUILD, FALSE
+            buildConfigField BOOLEAN, CRASHLITYCS, FALSE
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            //signingConfig signingConfigs.release
+        }
+
+        debug {
+            versionNameSuffix '.debug'
+            applicationIdSuffix '.debug'
+            buildConfigField BOOLEAN, DEBUG_BUILD, TRUE
+            buildConfigField BOOLEAN, CRASHLITYCS, TRUE
+            //signingConfig signingConfigs.debug
+        }
+
+        applicationVariants.all { variant ->
+            if (variant.buildType.name == "debug") { // increment build on debug builds
+                variant.generateBuildConfig.dependsOn incrementDebugVersion
+                incrementDebugVersion.doLast {
+                    variant.mergedFlavor.versionName = calculateVersionName()
+                    variant.mergedFlavor.versionCode = calculateVersionCode()
+                }
+            }
+
+            if (variant.buildType.name == "release") { // increment minor on release builds
+                variant.generateBuildConfig.dependsOn incrementReleaseVersion
+                incrementReleaseVersion.doLast {
+                    variant.mergedFlavor.versionName = calculateVersionName()
+                    variant.mergedFlavor.versionCode = calculateVersionCode()
+                }
+            }
+            variant.assemble.doLast {
+                changeApkName(variant)
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile supportDependencies.appCompatv7
+    compile loggerDependencies.logger
+    compile supportDependencies.constraintlayout
+
+    //CRASHLITYCS
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
+        transitive = true;
+    }
+}

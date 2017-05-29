@@ -1,0 +1,115 @@
+ext {
+    getAndroidGitCommitNumber = {
+        def stdout = new ByteArrayOutputStream()
+        try {
+            exec {
+                workingDir ${rootDir}
+                println ${rootDir}
+                println ${projectDir}
+                commandLine 'git', "-C ${rootDir}", "rev-list ${getGitBranch()}", '--first-parent', '--count'
+                standardOutput = stdout
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+        return stdout.toString().trim()
+        //return "git -C ${rootDir} rev-list ${getGitBranch()} --first-parent --count".execute().text.trim()
+    }
+
+    /**
+     * Returns the current Git branch name
+     */
+    getGitBranch = {
+        def stdout = new ByteArrayOutputStream()
+        try {
+            exec {
+                workingDir ${rootDir}
+                commandLine 'git', "rev-parse", '--abbrev-ref', 'HEAD'
+                standardOutput = stdout
+            }
+        }catch (Exception e) {
+                return 'master';
+        }
+        return stdout.toString().trim()
+        //return "git rev-parse --abbrev-ref HEAD".execute().text.trim()
+    }
+
+    /**
+     *
+     */
+    versionFile = new File(project.rootDir, 'version.properties')
+    calculateVersionName = {
+        def version = readVersion()
+        return "${version['major']}.${version['minor']}.${version['build']}"
+    }
+    calculateVersionCode = {
+        def version = readVersion()
+        def major = version['major'] as int // 1..∞
+        def minor = version['minor'] as int // 0..99
+        def build = version['build'] as int // 0..999
+        return (major * 100 + minor) * 1000 + build
+    }
+}
+
+task incrementDebugVersion {
+    description "Increments build counter in ${versionFile}"
+    doFirst {
+        incrementDebugVersionNumber()
+    }
+}
+
+void incrementDebugVersionNumber() {
+    def version = readVersion()
+
+    def build = version['build'] as int
+    def commitNumber = getAndroidGitCommitNumber()
+    build = commitNumber
+    version['build'] = build.toString()
+
+    def stream = new FileOutputStream(versionFile)
+    try {
+        version.store(stream, null)
+    } finally {
+        stream.close()
+    }
+}
+
+task incrementReleaseVersion {
+    description "Increments build counter in ${versionFile}"
+    doFirst {
+        incrementReleaseVersionNumber()
+    }
+}
+
+void incrementReleaseVersionNumber() {
+    def version = readVersion()
+
+    // careful with the types, culprits: "9"++ = ":", "9" + 1 = "91"
+    def minor = version['minor'] as int
+    minor++
+    version['minor'] = minor.toString()
+
+    def stream = new FileOutputStream(versionFile)
+    try {
+        version.store(stream, null)
+    } finally {
+        stream.close()
+    }
+}
+
+Properties readVersion() {
+    def version = new Properties()
+    def stream
+    try {
+        stream = new FileInputStream(versionFile)
+        version.load(stream)
+    } catch (FileNotFoundException ignore) {
+    } finally {
+        if (stream != null) stream.close()
+    }
+    // safety defaults in case file is missing
+    if (!version['major']) version['major'] = "1"
+    if (!version['minor']) version['minor'] = "0"
+    if (!version['build']) version['build'] = "0"
+    return version
+}
